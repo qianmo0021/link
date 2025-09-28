@@ -1,5 +1,5 @@
 {
-    "timestamp": "2025-09-28 08:12:44",
+    "timestamp": "2025-09-28 08:17:31",
     "accessible_count": 6,
     "inaccessible_count": 0,
     "total_count": 6,
@@ -9,21 +9,21 @@
             "link": "https://blog.liushen.fun/",
             "avatar": "https://blog.liushen.fun/info/avatar.ico",
             "descr": "柳影曳曳，清酒孤灯，扬笔撒墨，心境如霜",
-            "latency": 0.41
+            "latency": 0.68
         },
         {
             "name": "anzhiyu主题",
             "link": "https://hexo.anheyu.com/",
             "avatar": "https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg",
             "descr": "生活明朗，万物可爱",
-            "latency": 0.48
+            "latency": 0.44
         },
         {
             "name": "梦爱吃鱼",
             "link": "https://blog.bsgun.cn/",
             "avatar": "https://oss-cdn.bsgun.cn/logo/avatar.256.png",
             "descr": "不负心灵，不负今生。",
-            "latency": 0.99
+            "latency": 0.87
         },
         {
             "name": "陆小启",
@@ -37,7 +37,7 @@
             "link": "https://hexo.io/zh-cn/",
             "avatar": "https://p.liiiu.cn/i/2024/04/07/66124225b85c1.png",
             "descr": "快速、简洁且高效的博客框架",
-            "latency": 0.21
+            "latency": 0.16
         },
         {
             "name": "Hexo官网",
