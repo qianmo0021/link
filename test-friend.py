@@ -102,6 +102,7 @@ response = requests.get(json_url)
 if response.status_code == 200:
     data = response.json()
     link_list = data.get('link_list', [])
+    descr = data.get('descr', '')  # 获取 descr 值
 else:
     print(f"Failed to retrieve data, status code: {response.status_code}")
     exit()
@@ -113,7 +114,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
 # 处理 API 队列
 handle_api_requests()
 
-# 构造最终结果，包含 avatar
+# 构造最终结果，包含 avatar 和 descr
 link_status = [
     {
         'name': result[0]['name'],
@@ -140,6 +141,7 @@ with open(output_json_path, 'w', encoding='utf-8') as file:
         'accessible_count': accessible_count,
         'inaccessible_count': inaccessible_count,
         'total_count': total_count,
+        'descr': descr,  # 包含 descr 值
         'link_status': link_status
     }, file, ensure_ascii=False, indent=4)
 
