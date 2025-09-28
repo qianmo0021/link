@@ -97,7 +97,7 @@ def check_link_accessibility(item):
     return [item, latency]
 
 # 读取 JSON 数据
-json_url = 'https://raw.githubusercontent.com/qianmo0021/link/aaea6b8a9bd920cc71e153bad46c620fbe6dd67c/flink_count.json'
+json_url = 'https://raw.githubusercontent.com/qianmo0021/link/refs/heads/main/flink_count.json'
 response = requests.get(json_url)
 if response.status_code == 200:
     data = response.json()
