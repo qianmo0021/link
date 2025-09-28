@@ -102,7 +102,6 @@ response = requests.get(json_url)
 if response.status_code == 200:
     data = response.json()
     link_list = data.get('link_list', [])
-    descr = data.get('descr', '')  # 获取 descr 值
 else:
     print(f"Failed to retrieve data, status code: {response.status_code}")
     exit()
@@ -120,6 +119,7 @@ link_status = [
         'name': result[0]['name'],
         'link': result[0]['link'],
         'avatar': result[0].get('avatar', ''),
+        'descr': result[0].get('descr', ''),
         'latency': result[0].get('latency', result[1])
     }
     for result in results
@@ -141,7 +141,6 @@ with open(output_json_path, 'w', encoding='utf-8') as file:
         'accessible_count': accessible_count,
         'inaccessible_count': inaccessible_count,
         'total_count': total_count,
-        'descr': descr,  # 包含 descr 值
         'link_status': link_status
     }, file, ensure_ascii=False, indent=4)
 
