@@ -1,26 +1,27 @@
 {
-    "timestamp": "2025-09-28 06:19:45",
+    "timestamp": "2025-09-28 08:06:50",
     "accessible_count": 6,
     "inaccessible_count": 0,
     "total_count": 6,
+    "descr": "",
     "link_status": [
         {
             "name": "清羽飞扬",
-            "link": "https://blog.liushen.fun",
+            "link": "https://blog.liushen.fun/",
             "avatar": "https://blog.liushen.fun/info/avatar.ico",
-            "latency": 0.56
+            "latency": 0.74
         },
         {
             "name": "anzhiyu主题",
-            "link": "https://hexo.anheyu.com",
+            "link": "https://hexo.anheyu.com/",
             "avatar": "https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg",
-            "latency": 0.54
+            "latency": 1.15
         },
         {
             "name": "梦爱吃鱼",
-            "link": "https://blog.bsgun.cn",
+            "link": "https://blog.bsgun.cn/",
             "avatar": "https://oss-cdn.bsgun.cn/logo/avatar.256.png",
-            "latency": 0.72
+            "latency": 1.18
         },
         {
             "name": "陆小启",
@@ -30,15 +31,15 @@
         },
         {
             "name": "Hexo官网",
-            "link": "https://hexo.io/zh-cn",
+            "link": "https://hexo.io/zh-cn/",
             "avatar": "https://p.liiiu.cn/i/2024/04/07/66124225b85c1.png",
-            "latency": 0.08
+            "latency": 0.21
         },
         {
             "name": "Hexo官网",
-            "link": "https://github.com",
+            "link": "https://github.com/",
             "avatar": "https://p.liiiu.cn/i/2024/03/31/66097e8e6da00.png",
-            "latency": 0.15
+            "latency": 0.35
         }
     ]
 }
