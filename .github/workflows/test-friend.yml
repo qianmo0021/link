@@ -29,16 +29,21 @@ jobs:
         PROXY_URL: ${{ secrets.PROXY_URL }}
       run: python test-friend.py
 
-    - name: Commit and push changes
+    - name: Deploy result.json to gh-pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        # 新建临时目录存放 result.json
+        mkdir out
+        cp result.json out/
+
+        cd out
+        git init
+        git checkout -b gh-pages
         git add result.json
-        if git diff --staged --quiet; then
-          echo "No changes in result.json"
-        else
-          git commit -m "Update result.json [ci skip]"
-          git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:main
-        fi
+        git commit -m "Deploy result.json"
+        git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
+        git push -f origin gh-pages
