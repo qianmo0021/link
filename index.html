@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>友链状态可视化</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* 淡色主题背景 */
+  body { 
+    background: linear-gradient(to bottom, #f9fafb, #f3f4f6); 
+    transition: background 0.3s, color 0.3s; 
+    color: #1f2937;
+    min-height: 100vh;
+  }
+
+  /* 深色主题背景 */
+  body.dark { 
+    background: linear-gradient(to bottom, #1f2937, #111827); 
+    color: #f9fafb;
+  }
+
+  /* 顶部渐变 */
+  .header-bg {
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    color: white;
+    padding: 2rem 1rem;
+    border-radius: 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: background 0.3s;
+  }
+  body.dark .header-bg { 
+    background: linear-gradient(90deg, #2563eb, #0ea5e9); 
+  }
+
+  /* 入场动画 */
+  .card, .stat-card, .glass-card {
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    cursor: default;
+  }
+  .card.show, .stat-card.show, .glass-card.show { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+
+  /* 卡片悬停效果 */
+  .hover-animate:hover { 
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* 不可达状态 */
+  .unreachable { 
+    filter: grayscale(80%); 
+    opacity: 0.8; 
+    border: 1px solid #fca5a5 !important; 
+  }
+  body.dark .unreachable {
+    border: 1px solid #7f1d1d !important;
+  }
+
+  /* 统计卡片渐变 */
+  .stat-green { background: linear-gradient(135deg, #d1fae5, #10b981); }
+  .stat-red { background: linear-gradient(135deg, #fee2e2, #ef4444); }
+  .stat-blue { background: linear-gradient(135deg, #dbeafe, #3b82f6); }
+  .stat-card:hover { filter: brightness(1.15); }
+
+  /* 毛玻璃效果卡片 - 日间模式改为粉色 */
+  .glass-card {
+    background: rgba(255, 228, 230, 0.6) !important; /* 淡粉色 */
+    backdrop-filter: blur(16px) saturate(200%);
+    -webkit-backdrop-filter: blur(16px) saturate(200%);
+    border: 1px solid rgba(255, 228, 230, 0.4);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  body.dark .glass-card {
+    background: rgba(31, 41, 55, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* 不可达卡片特殊样式 */
+  .glass-card.unreachable {
+    background: rgba(254, 226, 226, 0.5) !important;
+  }
+  body.dark .glass-card.unreachable {
+    background: rgba(127, 29, 29, 0.4) !important;
+  }
+
+  /* 名称颜色控制 */
+  .name-display {
+    color: #1f2937; /* 日间黑色 */
+  }
+  body.dark .name-display {
+    color: white; /* 夜间白色 */
+  }
+
+  /* 夜间模式按钮 */
+  #dark-toggle {
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px;
+    background: #3b82f6; 
+    color: white;
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    font-size: 1.5rem; 
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+  #dark-toggle:hover { 
+    transform: scale(1.1); 
+  }
+  body.dark #dark-toggle { 
+    background: #0ea5e9; 
+  }
+
+  /* 确保统计卡片文字始终为白色 */
+  .stat-card, .stat-card * {
+    color: white !important;
+  }
+
+  /* 图表容器样式 */
+  .chart-wrapper {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1rem;
+    margin-bottom: 2rem;
+    height: 400px;
+    position: relative;
+  }
+  body.dark .chart-wrapper {
+    background-color: #1f2937;
+  }
+
+  /* 图表标题样式 */
+  .chart-title {
+    color: #1f2937;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  body.dark .chart-title {
+    color: white;
+  }
+
+  /* 确保canvas元素填满容器 */
+  .chart-wrapper canvas {
+    width: 100% !important;
+    height: calc(100% - 30px) !important;
+  }
+
+  /* 长名称处理 */
+  .truncate-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body class="text-gray-800">
+<div class="max-w-6xl mx-auto py-8 px-4">
+
+  <!-- 顶部 -->
+  <div class="header-bg">
+    <h1 class="text-4xl font-bold mb-1">📊 友链状态可视化</h1>
+    <p id="last-updated" class="text-sm opacity-90">最后更新时间：加载中...</p>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div id="summary" class="grid grid-cols-3 gap-4 mb-8 text-center"></div>
+
+  <!-- 延迟图表 -->
+  <div class="chart-wrapper transition-colors">
+    <h2 class="chart-title">📶 延迟统计</h2>
+    <canvas id="latencyChart"></canvas>
+  </div>
+
+  <!-- 链接列表 -->
+  <div id="link-list" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+</div>
+
+<!-- 夜间模式切换按钮 -->
+<div id="dark-toggle" title="切换夜间模式">🌙</div>
+
+<script>
+  // 夜间模式切换
+  const toggle = document.getElementById("dark-toggle");
+  toggle.addEventListener("click", ()=>{
+    document.body.classList.toggle("dark");
+    updateChartColors();
+  });
+
+  // 智能名称截断函数
+  function truncateName(name, maxLength = 12) {
+    if (name.length <= maxLength) return name;
+    const halfLength = Math.floor(maxLength / 2) - 1;
+    return name.substring(0, halfLength) + '...' + name.substring(name.length - halfLength);
+  }
+
+  // 图表标签截断函数
+  function truncateChartLabel(name, maxLength = 8) {
+    if (name.length <= maxLength) return name;
+    return name.substring(0, maxLength - 1) + '…';
+  }
+
+  async function loadData() {
+    try {
+      const res = await fetch("./result.json");
+      const data = await res.json();
+
+      document.getElementById("last-updated").innerText = "最后更新时间：" + data.timestamp;
+
+      const inaccessibleCount = data.link_status.filter(link => link.latency < 0).length;
+      const accessibleCount = data.link_status.length - inaccessibleCount;
+      const totalCount = data.link_status.length;
+
+      // 渲染统计卡片
+      document.getElementById("summary").innerHTML = `
+        <div class="stat-card stat-green rounded-xl p-6 shadow hover-animate show">
+          <div class="text-3xl font-bold">${accessibleCount}</div>
+          <div class="mt-1">可访问</div>
+        </div>
+        <div class="stat-card stat-red rounded-xl p-6 shadow hover-animate show">
+          <div class="text-3xl font-bold">${inaccessibleCount}</div>
+          <div class="mt-1">不可访问</div>
+        </div>
+        <div class="stat-card stat-blue rounded-xl p-6 shadow hover-animate show">
+          <div class="text-3xl font-bold">${totalCount}</div>
+          <div class="mt-1">总数</div>
+        </div>
+      `;
+
+      // 延迟图表
+      const ctx = document.getElementById('latencyChart').getContext('2d');
+      const labels = data.link_status.map(link => link.name);
+      const values = data.link_status.map(link => link.latency >= 0 ? link.latency : 0);
+      const colors = data.link_status.map(link => link.latency >= 0 ? 'rgba(37,99,235,0.7)' : 'rgba(220,38,38,0.4)');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '延迟 (秒)',
+            data: values,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('0.4','1').replace('0.7','1')),
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              title: { 
+                display: true, 
+                text: '秒',
+                color: '#1f2937'
+              },
+              ticks: {
+                color: '#1f2937',
+                maxTicksLimit: 6
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#1f2937',
+                maxRotation: 45,
+                minRotation: 45,
+                callback: function(value) {
+                  return truncateChartLabel(this.getLabelForValue(value));
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: '#1f2937',
+                usePointStyle: true,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(context) {
+                  return data.link_status[context[0].dataIndex].name;
+                },
+                label: function(context) {
+                  const link = data.link_status[context.dataIndex];
+                  return `延迟: ${link.latency >= 0 ? link.latency.toFixed(2) + 's' : '不可达'}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 渲染友链卡片（使用粉色毛玻璃效果）
+      const linkList = document.getElementById("link-list");
+      linkList.innerHTML = data.link_status.map((link,i) => `
+        <div class="glass-card ${link.latency<0?'unreachable':''} hover-animate delay-${i+1} rounded-xl p-5 flex flex-col items-center text-center">
+          <img src="${link.avatar}" class="w-20 h-20 rounded-full border-2 border-white/30 mb-3" onerror="this.src='https://via.placeholder.com/64?text=?'">
+          <div class="name-display text-lg font-semibold mb-1 truncate-name" title="${link.name}">
+            ${truncateName(link.name)}
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">${link.descr}</p>
+          <p class="text-xs">
+            延迟: ${link.latency>=0?`<span class="text-green-600 font-mono">${link.latency.toFixed(2)}s</span>`:`<span class="text-red-600">不可达</span>`}
+          </p>
+        </div>
+      `).join("");
+
+      // 卡片入场动画
+      document.querySelectorAll(".glass-card").forEach((el,i)=>{
+        setTimeout(()=>el.classList.add("show"), i*80);
+      });
+
+      // 初始更新图表颜色
+      updateChartColors();
+
+    } catch(err) {
+      document.getElementById("link-list").innerHTML = `<div class="text-red-600 text-center">❌ 加载失败: ${err.message}</div>`;
+    }
+  }
+
+  // 更新图表颜色函数
+  function updateChartColors() {
+    const isDark = document.body.classList.contains('dark');
+    const textColor = isDark ? '#f9fafb' : '#1f2937';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    
+    const chart = Chart.getChart('latencyChart');
+    if (chart) {
+      chart.options.scales.y.ticks.color = textColor;
+      chart.options.scales.x.ticks.color = textColor;
+      chart.options.scales.y.title.color = textColor;
+      chart.options.scales.y.grid.color = gridColor;
+      chart.options.plugins.legend.labels.color = textColor;
+      
+      chart.update();
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
