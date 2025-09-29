@@ -2,33 +2,38 @@ name: Auto Update Result JSON
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */12 * * *'  # 每 12 小时更新一次
   workflow_dispatch:
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    
+
     steps:
+    # 拉取仓库
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
+    # 安装 Python
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
+    # 安装依赖
     - name: Install dependencies
       run: |
         pip install requests python-dotenv
 
+    # 运行生成 result.json
     - name: Run test-friend.py
       env:
         LIJIANGAPI_TOKEN: ${{ secrets.LIJIANGAPI_TOKEN }}
         PROXY_URL: ${{ secrets.PROXY_URL }}
       run: python test-friend.py
 
+    # 更新 gh-pages 分支的 result.json，同时保留 index.html
     - name: Deploy result.json to gh-pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -36,14 +41,19 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-        # 新建临时目录存放 result.json
-        mkdir out
-        cp result.json out/
+        # 拉取 gh-pages 分支，或者创建一个新的
+        git fetch origin gh-pages || true
+        git worktree add gh-pages gh-pages || git worktree add gh-pages -b gh-pages
 
-        cd out
-        git init
-        git checkout -b gh-pages
+        # 复制 result.json 到 gh-pages 根目录
+        cp result.json gh-pages/
+
+        cd gh-pages
         git add result.json
-        git commit -m "Deploy result.json"
-        git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
-        git push -f origin gh-pages
+
+        if git diff --staged --quiet; then
+          echo "No changes in result.json"
+        else
+          git commit -m "Update result.json [ci skip]"
+          git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:gh-pages
+        fi
